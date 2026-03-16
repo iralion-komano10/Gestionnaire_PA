@@ -1,0 +1,466 @@
+{% extends 'base.html' %}
+
+{% block title %}Accueil - Gestion des Plans d'Action{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero section améliorée */
+    .hero-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-bottom: 1px solid var(--gray-200);
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,121,0,0.03) 0%, transparent 70%);
+        animation: rotate 30s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .hero-section h1 {
+        color: var(--dark-bg);
+        font-size: clamp(2rem, 5vw, 3rem);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-section .lead {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-section .btn {
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .hero-section .btn-orange {
+        background: var(--orange-primary);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 15px rgba(255,121,0,0.2);
+    }
+    
+    .hero-section .btn-orange:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255,121,0,0.3);
+    }
+    
+    .hero-section .btn-outline-orange {
+        border: 2px solid var(--orange-primary);
+        color: var(--orange-primary);
+        background: transparent;
+    }
+    
+    .hero-section .btn-outline-orange:hover {
+        background: var(--orange-primary);
+        color: white;
+        transform: translateY(-3px);
+    }
+    
+    /* Cartes de statistiques */
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+        transition: all 0.3s ease;
+        border: 1px solid var(--gray-200);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--orange-primary), var(--orange-secondary));
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(255,121,0,0.1);
+    }
+    
+    .stat-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .stat-card h3 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover h3 {
+        transform: scale(1.1);
+    }
+    
+    .stat-card.text-primary h3 { color: var(--orange-primary); }
+    .stat-card.text-success h3 { color: #28a745; }
+    .stat-card.text-warning h3 { color: #ffc107; }
+    .stat-card.text-info h3 { color: #17a2b8; }
+    
+    .stat-card p {
+        color: var(--gray-600);
+        font-weight: 500;
+        margin: 0;
+    }
+    
+    /* Section titre */
+    .section-title {
+        position: relative;
+        margin-bottom: 2.5rem;
+        padding-bottom: 1rem;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: var(--orange-primary);
+        border-radius: 2px;
+    }
+    
+    .section-title.text-center::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    /* Cartes des plans */
+    .plan-card {
+        background: white;
+        border-radius: 15px;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        position: relative;
+    }
+    
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        border-color: var(--orange-primary);
+    }
+    
+    .plan-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .plan-card .card-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--dark-bg);
+    }
+    
+    .plan-card .direction-badge {
+        display: inline-block;
+        padding: 0.25rem 1rem;
+        background: var(--orange-light);
+        color: var(--orange-primary);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+    
+    .plan-card .progress {
+        height: 8px;
+        background: var(--gray-200);
+        border-radius: 4px;
+        margin: 1rem 0;
+        overflow: hidden;
+    }
+    
+    .plan-card .progress-bar {
+        background: linear-gradient(90deg, var(--orange-primary), var(--orange-secondary));
+        border-radius: 4px;
+        transition: width 1s ease;
+    }
+    
+    .plan-card .plan-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gray-200);
+    }
+    
+    .plan-card .date {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+    }
+    
+    .plan-card .date i {
+        color: var(--orange-primary);
+        margin-right: 0.5rem;
+    }
+    
+    .plan-card .btn-view {
+        background: transparent;
+        border: 1px solid var(--orange-primary);
+        color: var(--orange-primary);
+        padding: 0.4rem 1.2rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .plan-card .btn-view:hover {
+        background: var(--orange-primary);
+        color: white;
+        transform: translateX(3px);
+    }
+    
+    /* État vide */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 15px;
+        border: 2px dashed var(--gray-300);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state p {
+        color: var(--gray-600);
+        margin-bottom: 1.5rem;
+    }
+    
+    .empty-state .btn {
+        background: var(--orange-primary);
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 30px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    
+    .empty-state .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255,121,0,0.3);
+    }
+    
+    /* Animations */
+    .fade-in {
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    
+    .plan-card {
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+    
+    {% for plan in plans_recents %}
+    .plan-card:nth-child({{ forloop.counter }}) {
+        animation-delay: {{ forloop.counter|add:"0.1" }}s;
+    }
+    {% endfor %}
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+        
+        .hero-section .btn {
+            display: block;
+            width: 100%;
+            margin: 0.5rem 0 !important;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero section améliorée -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-5 fw-bold mb-3 fade-in">
+            <i class="fas fa-chart-line me-2" style="color: var(--orange-primary);"></i>
+            Gestion des Plans d'Action
+        </h1>
+        <p class="lead text-muted mx-auto fade-in" style="max-width: 600px; animation-delay: 0.1s;">
+            Pilotez et suivez efficacement les plans d'action issus des recommandations
+        </p>
+        <div class="mt-4 fade-in" style="animation-delay: 0.2s;">
+            <a href="{% url 'pa:ajouter_plan' %}" class="btn btn-orange me-2">
+                <i class="fas fa-plus-circle me-2"></i>Nouveau Plan
+            </a>
+            <a href="{% url 'pa:dashboard' %}" class="btn btn-outline-orange">
+                <i class="fas fa-tachometer-alt me-2"></i>Tableau de Bord
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques améliorées -->
+<div class="container my-5">
+    <h2 class="section-title text-center mb-5">Vue d'ensemble</h2>
+    <div class="row g-4">
+        <div class="col-md-3 col-6">
+            <div class="stat-card text-center">
+                <h3 class="text-primary mb-1">{{ total_plans|default:"0" }}</h3>
+                <p class="text-muted mb-0">Total Plans</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card text-center">
+                <h3 class="text-success mb-1">{{ stats.termine|default:"0" }}</h3>
+                <p class="text-muted mb-0">Terminés</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card text-center">
+                <h3 class="text-warning mb-1">{{ stats.en_cours|default:"0" }}</h3>
+                <p class="text-muted mb-0">En Cours</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card text-center">
+                <h3 class="text-info mb-1">{{ stats.en_attente|default:"0" }}</h3>
+                <p class="text-muted mb-0">En Attente</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Plans récents améliorés -->
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center section-title">
+        <h3 class="mb-0">Plans récents</h3>
+        {% if plans_recents %}
+        <a href="{% url 'pa:liste_plans' %}" class="btn btn-outline-orange btn-sm">
+            Voir tous <i class="fas fa-arrow-right ms-2"></i>
+        </a>
+        {% endif %}
+    </div>
+    
+    <div class="row g-4">
+        {% for plan in plans_recents %}
+        <div class="col-md-6">
+            <div class="plan-card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ plan.description|truncatechars:50 }}</h5>
+                    <span class="direction-badge">
+                        <i class="fas fa-building me-1"></i>{{ plan.direction }}
+                    </span>
+                    
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Progression</small>
+                            <small>{{ plan.progression }}%</small>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: {{ plan.progression }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-footer">
+                        <span class="date">
+                            <i class="fas fa-calendar"></i>
+                            {{ plan.echeance|date:"d/m/Y" }}
+                        </span>
+                        <a href="{% url 'pa:detail_plan' plan.id %}" class="btn-view">
+                            Voir détails <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <p>Aucun plan d'action pour le moment</p>
+                <a href="{% url 'pa:ajouter_plan' %}" class="btn">
+                    <i class="fas fa-plus-circle me-2"></i>Créer le premier plan
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Section des fonctionnalités rapides (optionnelle) -->
+<div class="container my-5">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="stat-card text-center p-4">
+                <i class="fas fa-tasks fa-3x mb-3" style="color: var(--orange-primary);"></i>
+                <h5>Suivi en temps réel</h5>
+                <p class="text-muted small">Visualisez la progression de vos plans</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card text-center p-4">
+                <i class="fas fa-chart-pie fa-3x mb-3" style="color: var(--orange-primary);"></i>
+                <h5>Statistiques détaillées</h5>
+                <p class="text-muted small">Analysez vos performances</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card text-center p-4">
+                <i class="fas fa-bell fa-3x mb-3" style="color: var(--orange-primary);"></i>
+                <h5>Alertes intelligentes</h5>
+                <p class="text-muted small">Soyez notifié des échéances</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

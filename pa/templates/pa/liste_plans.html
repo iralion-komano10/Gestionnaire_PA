@@ -1,0 +1,752 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des Plans d'Action{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== VARIABLES ===== */
+    :root {
+        --border-color: #e9ecef;
+        --text-primary: #212529;
+        --text-secondary: #6c757d;
+        --bg-hover: #f8f9fa;
+        --accent: #FF7900;
+        --accent-light: #fff4e5;
+    }
+
+    /* ===== EN-TÊTE ===== */
+    .page-header {
+        background: white;
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .page-header .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .page-header h2 {
+        margin: 0;
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 1.6rem;
+    }
+    
+    .page-header h2 i {
+        color: var(--accent);
+        margin-right: 0.75rem;
+        font-size: 1.8rem;
+    }
+    
+    /* ===== BOUTONS ===== */
+    .btn {
+        padding: 0.5rem 1.2rem;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    
+    .btn-outline {
+        border: 1px solid var(--border-color);
+        background: white;
+        color: var(--text-secondary);
+    }
+    
+    .btn-outline:hover {
+        background: var(--bg-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    
+    .btn-primary {
+        background: var(--accent);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #e66a00;
+    }
+    
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    @media (max-width: 576px) {
+        .header-actions {
+            width: 100%;
+        }
+        .header-actions .btn {
+            flex: 1;
+            text-align: center;
+        }
+    }
+
+    /* ===== STATISTIQUES ===== */
+    .stats-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1 1 200px;
+        transition: all 0.2s;
+    }
+    
+    .stat-card:hover {
+        border-color: var(--accent);
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: var(--accent-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        font-size: 1.2rem;
+    }
+    
+    .stat-info h4 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+    }
+    
+    .stat-info p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    /* ===== FILTRES ===== */
+    .filters-section {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .filters-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .filter-item label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 0.3rem;
+    }
+    
+    .filter-item select,
+    .filter-item input {
+        width: 100%;
+        padding: 0.6rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    
+    .filter-item select:focus,
+    .filter-item input:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+    
+    .filter-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+    
+    .btn-filter {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .btn-filter:hover {
+        background: #e66a00;
+    }
+    
+    .btn-reset {
+        background: white;
+        border: 1px solid var(--border-color);
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-reset:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    
+    .active-filters {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .filter-tag {
+        background: var(--accent-light);
+        color: var(--accent);
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .filter-tag i {
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    
+    .filter-tag i:hover {
+        opacity: 1;
+    }
+
+    /* ===== TABLEAU ===== */
+    .table-wrapper {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .table th {
+        text-align: left;
+        padding: 1rem;
+        background: var(--bg-hover);
+        font-weight: 500;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+    
+    .table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+    
+    .table tbody tr:hover {
+        background: var(--bg-hover);
+    }
+    
+    /* Description cell */
+    .description-cell {
+        max-width: 250px;
+    }
+    
+    .description-cell strong {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.2rem;
+        color: var(--text-primary);
+    }
+    
+    .description-cell small {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+    
+    /* Direction badge */
+    .direction-badge {
+        background: var(--bg-hover);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        display: inline-block;
+    }
+    
+    /* Progression */
+    .progress-cell {
+        min-width: 120px;
+    }
+    
+    .progress-bar-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .progress-bar-bg {
+        flex: 1;
+        height: 6px;
+        background: var(--border-color);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    
+    .progress-bar-fill {
+        height: 100%;
+        background: var(--accent);
+        border-radius: 3px;
+        transition: width 0.2s;
+    }
+    
+    .progress-value {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        min-width: 40px;
+        text-align: right;
+    }
+    
+    /* Statut badges */
+    .status-badge {
+        display: inline-block;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .status-badge.termine {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+    
+    .status-badge.en_cours {
+        background: #fff3e0;
+        color: var(--accent);
+    }
+    
+    .status-badge.en_attente {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .status-badge.annule {
+        background: #ffebee;
+        color: #c62828;
+    }
+    
+    /* Delay badges */
+    .delay-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-left: 0.5rem;
+    }
+    
+    .delay-badge.retard {
+        background: #ffebee;
+        color: #c62828;
+    }
+    
+    .delay-badge.urgent {
+        background: #fff3e0;
+        color: #e65100;
+    }
+    
+    /* Actions */
+    .actions-cell {
+        display: flex;
+        gap: 0.3rem;
+    }
+    
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    
+    .btn-icon:hover {
+        background: var(--bg-hover);
+        border-color: var(--border-color);
+    }
+    
+    .btn-icon.view:hover {
+        color: var(--accent);
+    }
+    
+    .btn-icon.edit:hover {
+        color: #1976d2;
+    }
+    
+    .btn-icon.cancel:hover {
+        color: #ed6c02;
+    }
+    
+    .btn-icon.delete:hover {
+        color: #c62828;
+    }
+    
+    /* État vide */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+    
+    .empty-state p {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.3rem;
+        margin-top: 2rem;
+    }
+    
+    .page-link {
+        padding: 0.5rem 0.8rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    
+    .page-link:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    
+    .page-link.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        
+        .table {
+            min-width: 900px;
+        }
+        
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-actions {
+            grid-column: span 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- En-tête -->
+<div class="page-header">
+    <div class="container-fluid">
+        <div class="header-content">
+            <h2>
+                <i class="fas fa-list-ul"></i>
+                Plans d'Action
+            </h2>
+            <div class="header-actions">
+                <button class="btn btn-outline" onclick="window.location.href='{% url 'pa:export_csv' %}'">
+                    <i class="fas fa-download me-2"></i>Exporter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Statistiques -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="stat-info">
+                <h4>{{ plans|length }}</h4>
+                <p>Total plans</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h4>{{ stats.termine|default:"0" }}</h4>
+                <p>Terminés</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-sync-alt"></i>
+            </div>
+            <div class="stat-info">
+                <h4>{{ stats.en_cours|default:"0" }}</h4>
+                <p>En cours</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <h4>{{ stats.en_attente|default:"0" }}</h4>
+                <p>En attente</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters-section">
+        <div class="filters-title">
+            <i class="fas fa-filter me-2"></i>Filtrer les plans
+        </div>
+        
+        <form method="get">
+            <div class="filters-grid">
+                <div class="filter-item">
+                    <label>Statut</label>
+                    <select name="statut">
+                        <option value="">Tous</option>
+                        <option value="en_attente" {% if statut_actuel == 'en_attente' %}selected{% endif %}>En attente</option>
+                        <option value="en_cours" {% if statut_actuel == 'en_cours' %}selected{% endif %}>En cours</option>
+                        <option value="termine" {% if statut_actuel == 'termine' %}selected{% endif %}>Terminé</option>
+                        <option value="annule" {% if statut_actuel == 'annule' %}selected{% endif %}>Annulé</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label>Direction</label>
+                    <input type="text" name="direction" value="{{ direction_filtre }}" placeholder="Direction...">
+                </div>
+                
+                <div class="filter-item">
+                    <label>Échéance</label>
+                    <select name="echeance">
+                        <option value="">Toutes</option>
+                        <option value="urgent">Urgent (≤ 7 jours)</option>
+                        <option value="retard">En retard</option>
+                    </select>
+                </div>
+                
+                <div class="filter-actions">
+                    <button type="submit" class="btn-filter">
+                        <i class="fas fa-search me-2"></i>Filtrer
+                    </button>
+                    <a href="{% url 'pa:liste_plans' %}" class="btn-reset">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Filtres actifs -->
+        {% if statut_actuel or direction_filtre %}
+        <div class="active-filters">
+            <span class="text-muted me-2">Filtres actifs :</span>
+            {% if statut_actuel %}
+            <span class="filter-tag">
+                Statut : {{ statut_actuel|title }}
+                <a href="?{% if direction_filtre %}direction={{ direction_filtre }}{% endif %}" class="text-decoration-none">
+                    <i class="fas fa-times"></i>
+                </a>
+            </span>
+            {% endif %}
+            {% if direction_filtre %}
+            <span class="filter-tag">
+                Direction : {{ direction_filtre }}
+                <a href="?{% if statut_actuel %}statut={{ statut_actuel }}{% endif %}" class="text-decoration-none">
+                    <i class="fas fa-times"></i>
+                </a>
+            </span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tableau -->
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Direction</th>
+                    <th>Porteur</th>
+                    <th>Échéance</th>
+                    <th>Progression</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plan in plans %}
+                <tr>
+                    <td class="description-cell">
+                        <strong>{{ plan.description|truncatechars:50 }}</strong>
+                        <small>Créé le {{ plan.date_creation|date:"d/m/Y" }}</small>
+                    </td>
+                    <td>
+                        <span class="direction-badge">{{ plan.direction|truncatechars:20 }}</span>
+                    </td>
+                    <td>{{ plan.porteur|truncatechars:15 }}</td>
+                    <td>
+                        <span>{{ plan.echeance|date:"d/m/Y" }}</span>
+                        {% if plan.jours_restants < 0 %}
+                            <span class="delay-badge retard">Retard</span>
+                        {% elif plan.jours_restants <= 7 and plan.statut not in 'termine annule' %}
+                            <span class="delay-badge urgent">Urgent</span>
+                        {% endif %}
+                    </td>
+                    <td class="progress-cell">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: {{ plan.progression }}%"></div>
+                            </div>
+                            <span class="progress-value">{{ plan.progression }}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge {{ plan.statut }}">
+                            <i class="fas 
+                                {% if plan.statut == 'termine' %}fa-check-circle
+                                {% elif plan.statut == 'en_cours' %}fa-sync-alt
+                                {% elif plan.statut == 'en_attente' %}fa-clock
+                                {% elif plan.statut == 'annule' %}fa-times-circle
+                                {% endif %} me-1">
+                            </i>
+                            {{ plan.get_statut_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="{% url 'pa:detail_plan' plan.id %}" class="btn-icon view" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'pa:modifier_plan' plan.id %}" class="btn-icon edit" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% if plan.statut == 'annule' %}
+                                <a href="{% url 'pa:relancer_plan' plan.id %}" class="btn-icon edit" title="Relancer">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'pa:annuler_plan' plan.id %}" class="btn-icon cancel" title="Annuler">
+                                    <i class="fas fa-ban"></i>
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'pa:supprimer_plan' plan.id %}" class="btn-icon delete" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <p>Aucun plan d'action trouvé</p>
+                            <a href="{% url 'pa:ajouter_plan' %}" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-2"></i>
+                                Créer un plan
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if plans.has_other_pages %}
+    <div class="pagination">
+        {% if plans.has_previous %}
+            <a href="?page=1" class="page-link">&laquo;</a>
+            <a href="?page={{ plans.previous_page_number }}" class="page-link">‹</a>
+        {% endif %}
+        
+        {% for i in plans.paginator.page_range %}
+            {% if plans.number == i %}
+                <span class="page-link active">{{ i }}</span>
+            {% elif i > plans.number|add:'-3' and i < plans.number|add:'3' %}
+                <a href="?page={{ i }}" class="page-link">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if plans.has_next %}
+            <a href="?page={{ plans.next_page_number }}" class="page-link">›</a>
+            <a href="?page={{ plans.paginator.num_pages }}" class="page-link">&raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

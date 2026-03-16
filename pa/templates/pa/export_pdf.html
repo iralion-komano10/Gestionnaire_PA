@@ -1,0 +1,20 @@
+<div class="dropdown">
+    <button class="btn btn-outline-orange dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <i class="fas fa-download me-2"></i>
+        Exporter
+    </button>
+    <ul class="dropdown-menu">
+        <li>
+            <a class="dropdown-item" href="{% url 'pa:export_csv' %}">
+                <i class="fas fa-file-csv me-2 text-success"></i>
+                Export CSV
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="{% url 'pa:export_excel' %}">
+                <i class="fas fa-file-excel me-2 text-success"></i>
+                Export Excel
+            </a>
+        </li>
+    </ul>
+</div>

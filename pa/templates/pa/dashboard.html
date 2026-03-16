@@ -1,0 +1,823 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de Bord - Gestion des Plans d'Action{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* ===== VARIABLES ===== */
+    :root {
+        --primary: #FF7900;
+        --primary-light: #fff4e5;
+        --primary-dark: #e66a00;
+        --success: #10b981;
+        --success-light: #e8f5e9;
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --info: #3b82f6;
+        --info-light: #eff6ff;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --border-color: #e9ecef;
+        --text-primary: #212529;
+        --text-secondary: #6c757d;
+        --bg-light: #f8f9fa;
+        --bg-hover: #f1f3f5;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --transition: all 0.2s ease;
+    }
+
+    /* ===== EN-TÊTE ===== */
+    .page-header {
+        background: white;
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .page-header .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .page-header h2 {
+        margin: 0;
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 1.6rem;
+    }
+    
+    .page-header h2 i {
+        color: var(--primary);
+        margin-right: 0.75rem;
+        font-size: 1.8rem;
+    }
+
+    /* ===== BOUTONS ===== */
+    .btn {
+        padding: 0.6rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: var(--transition);
+        border: 1px solid transparent;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+
+    /* ===== STATISTIQUES ===== */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 992px) {
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: var(--transition);
+    }
+
+    .stat-card:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        background: var(--bg-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+
+    .stat-trend {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.2rem;
+    }
+
+    /* ===== GRAPHIQUES ===== */
+    .charts-row {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 992px) {
+        .charts-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .chart-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .chart-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chart-header h6 {
+        margin: 0;
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .chart-header h6 i {
+        color: var(--primary);
+    }
+
+    .chart-total {
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 0.2rem 1rem;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .chart-body {
+        padding: 1.5rem;
+        height: 300px;
+        position: relative;
+    }
+
+    /* ===== ALERTES ===== */
+    .alerts-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .alerts-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .alerts-header h6 {
+        margin: 0;
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alerts-header h6 i {
+        color: var(--warning);
+    }
+
+    .alerts-count {
+        background: var(--warning-light);
+        color: var(--warning);
+        padding: 0.2rem 1rem;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .alerts-list {
+        padding: 1rem;
+        max-height: 350px;
+        overflow-y: auto;
+    }
+
+    .alert-item {
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        transition: var(--transition);
+    }
+
+    .alert-item:hover {
+        border-color: var(--warning);
+        background: var(--warning-light);
+    }
+
+    .alert-item.urgent {
+        border-left: 3px solid var(--danger);
+    }
+
+    .alert-item.urgent:hover {
+        border-color: var(--danger);
+        background: var(--danger-light);
+    }
+
+    .alert-title {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.3rem;
+    }
+
+    .alert-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+
+    .alert-date i {
+        color: var(--warning);
+        margin-right: 0.3rem;
+    }
+
+    .alert-days {
+        padding: 0.2rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .alert-days.warning {
+        background: var(--warning-light);
+        color: var(--warning);
+    }
+
+    .alert-days.danger {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+    /* ===== PLANS RÉCENTS ===== */
+    .recent-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .recent-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .recent-header h6 {
+        margin: 0;
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .recent-header h6 i {
+        color: var(--primary);
+    }
+
+    .recent-body {
+        padding: 1rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th {
+        text-align: left;
+        padding: 0.8rem 1rem;
+        background: var(--bg-light);
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.85rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .table tbody tr:hover {
+        background: var(--bg-light);
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.3rem 1rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .status-badge.termine {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    .status-badge.en_cours {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .status-badge.en_attente {
+        background: var(--info-light);
+        color: var(--info);
+    }
+
+    .status-badge.annule {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+    .progress-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 100px;
+    }
+
+    .progress {
+        flex: 1;
+        height: 6px;
+        background: var(--border-color);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 3px;
+    }
+
+    .progress-value {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        min-width: 35px;
+        text-align: right;
+    }
+
+    .btn-view {
+        padding: 0.3rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .btn-view:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--border-color);
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .page-header .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stats-row {
+            gap: 1rem;
+        }
+
+        .stat-card {
+            padding: 1rem;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- En-tête -->
+<div class="page-header">
+    <div class="container-fluid">
+        <div class="header-content">
+            <h2>
+                <i class="fas fa-tachometer-alt"></i>
+                Tableau de Bord
+            </h2>
+            
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Statistiques -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total plans</div>
+                <div class="stat-value">{{ total_plans|default:"0" }}</div>
+                <div class="stat-trend">+{{ nouveaux_plans|default:"0" }} ce mois</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Terminés</div>
+                <div class="stat-value">{{ stats.termine|default:"0" }}</div>
+                <div class="stat-trend">{{ pourcentage_termines|default:"0" }}% du total</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-sync-alt" style="color: var(--warning);"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">En cours</div>
+                <div class="stat-value">{{ stats.en_cours|default:"0" }}</div>
+                <div class="stat-trend">Prog. moy. {{ progression_moyenne|default:"0" }}%</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock" style="color: var(--info);"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">En attente</div>
+                <div class="stat-value">{{ stats.en_attente|default:"0" }}</div>
+                <div class="stat-trend">À démarrer</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques avec pourcentages -->
+    <div class="charts-row">
+        <!-- Graphique circulaire -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h6>
+                    <i class="fas fa-chart-pie"></i>
+                    Répartition par statut
+                </h6>
+                <span class="chart-total">Total: {{ total_plans|default:"0" }}</span>
+            </div>
+            <div class="chart-body">
+                <canvas id="statutChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Graphique en barres -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h6>
+                    <i class="fas fa-chart-bar"></i>
+                    Plans par direction
+                </h6>
+            </div>
+            <div class="chart-body">
+                <canvas id="directionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertes et Plans récents -->
+    <div class="row g-4">
+        <!-- Alertes -->
+        <div class="col-xl-4">
+            <div class="alerts-card">
+                <div class="alerts-header">
+                    <h6>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Alertes
+                    </h6>
+                    <span class="alerts-count">{{ alertes|length }}</span>
+                </div>
+                
+                <div class="alerts-list">
+                    {% for plan in alertes %}
+                    <div class="alert-item {% if plan.jours_restants < 0 %}urgent{% endif %}">
+                        <div class="alert-title">{{ plan.description|truncatechars:35 }}</div>
+                        <div class="alert-meta">
+                            <span class="alert-date">
+                                <i class="fas fa-calendar"></i>
+                                {{ plan.echeance|date:"d/m/Y" }}
+                            </span>
+                            <span class="alert-days {% if plan.jours_restants < 0 %}danger{% else %}warning{% endif %}">
+                                {% if plan.jours_restants < 0 %}
+                                    Retard {{ plan.jours_restants|stringformat:"+d"|slice:"1:" }}j
+                                {% elif plan.jours_restants == 0 %}
+                                    Aujourd'hui
+                                {% else %}
+                                    {{ plan.jours_restants }}j
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <p class="mb-0">Aucune alerte</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Plans récents -->
+        <div class="col-xl-8">
+            <div class="recent-card">
+                <div class="recent-header">
+                    <h6>
+                        <i class="fas fa-history"></i>
+                        Plans récents
+                    </h6>
+                    <a href="{% url 'pa:liste_plans' %}" class="btn-view">
+                        Voir tout <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                
+                <div class="recent-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Direction</th>
+                                    <th>Porteur</th>
+                                    <th>Échéance</th>
+                                    <th>Progression</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for plan in plans_recents %}
+                                <tr>
+                                    <td>{{ plan.description|truncatechars:30 }}</td>
+                                    <td>{{ plan.direction|truncatechars:15 }}</td>
+                                    <td>{{ plan.porteur|truncatechars:12 }}</td>
+                                    <td>
+                                        <span {% if plan.jours_restants < 0 %}class="text-danger"{% endif %}>
+                                            {{ plan.echeance|date:"d/m/Y" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="progress-container">
+                                            <div class="progress">
+                                                <div class="progress-bar" style="width: {{ plan.progression }}%;"></div>
+                                            </div>
+                                            <span class="progress-value">{{ plan.progression }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge {{ plan.statut }}">
+                                            {{ plan.get_statut_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        <i class="fas fa-clipboard-list fa-2x mb-2" style="color: var(--border-color);"></i>
+                                        <p class="mb-0">Aucun plan d'action</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Graphiques avec pourcentages bien intégrés
+    document.addEventListener('DOMContentLoaded', function() {
+        // Données des statistiques
+        const termine = {{ stats.termine|default:"0" }};
+        const enCours = {{ stats.en_cours|default:"0" }};
+        const enAttente = {{ stats.en_attente|default:"0" }};
+        const total = termine + enCours + enAttente;
+        
+        // Graphique circulaire - Les pourcentages sont dans la légende (pas de débordement)
+        const statutCtx = document.getElementById('statutChart').getContext('2d');
+        new Chart(statutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Terminé', 'En cours', 'En attente'],
+                datasets: [{
+                    data: [termine, enCours, enAttente],
+                    backgroundColor: ['#10b981', '#FF7900', '#6b7280'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { 
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            // Générer les labels avec pourcentages
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    
+                                    return data.labels.map((label, i) => {
+                                        const value = data.datasets[0].data[i];
+                                        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                        
+                                        return {
+                                            text: `${label} (${percentage}%)`,
+                                            fillStyle: data.datasets[0].backgroundColor[i],
+                                            hidden: false,
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${context.label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Graphique en barres
+        const directionCtx = document.getElementById('directionChart').getContext('2d');
+        new Chart(directionCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for dir in stats_directions %}'{{ dir.direction|truncatechars:15 }}',{% endfor %}],
+                datasets: [{
+                    label: 'Nombre de plans',
+                    data: [{% for dir in stats_directions %}{{ dir.total }},{% endfor %}],
+                    backgroundColor: '#FF7900',
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                return `${value} plan${value > 1 ? 's' : ''}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { 
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value;
+                            }
+                        },
+                        grid: { color: '#e5e7eb' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

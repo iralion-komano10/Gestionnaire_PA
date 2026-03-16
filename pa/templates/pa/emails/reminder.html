@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rappel d'échéance</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid #FF7900;
+        }
+        .header i {
+            color: #FF7900;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 500;
+        }
+        .content {
+            background: white;
+            padding: 30px;
+            border: 1px solid #e9ecef;
+        }
+        .alert-box {
+            background: #fff4e5;
+            border-left: 4px solid #FF7900;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .plan-details {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .plan-details table {
+            width: 100%;
+        }
+        .plan-details td {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .plan-details td:first-child {
+            font-weight: 600;
+            color: #495057;
+            width: 120px;
+        }
+        .button {
+            display: inline-block;
+            background: #FF7900;
+            color: white;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background: #e66a00;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            font-size: 12px;
+            color: #868e96;
+        }
+        .urgent {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .warning {
+            color: #FF7900;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <i class="fas fa-clock"></i>
+            <h1>Rappel d'échéance</h1>
+        </div>
+        
+        <div class="content">
+            <p>Bonjour <strong>{{ user.get_full_name|default:user.username }}</strong>,</p>
+            
+            <div class="alert-box">
+                <strong>⚠️ Attention :</strong> Le plan d'action suivant arrive à échéance dans <strong>{{ days_remaining }} jour</strong>.
+            </div>
+            
+            <div class="plan-details">
+                <h3 style="margin-top: 0; color: #FF7900;">{{ plan.description }}</h3>
+                <table>
+                    <tr>
+                        <td>Direction :</td>
+                        <td>{{ plan.direction }}</td>
+                    </tr>
+                    <tr>
+                        <td>Porteur :</td>
+                        <td>{{ plan.porteur }}</td>
+                    </tr>
+                    <tr>
+                        <td>Indicateur :</td>
+                        <td>{{ plan.indicateur }}</td>
+                    </tr>
+                    <tr>
+                        <td>Date début :</td>
+                        <td>{{ plan.date_debut|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Date fin :</td>
+                        <td>{{ plan.date_fin|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Échéance :</td>
+                        <td>
+                            <span class="{% if days_remaining <= 1 %}urgent{% else %}warning{% endif %}">
+                                {{ plan.echeance|date:"d/m/Y" }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Progression :</td>
+                        <td>
+                            <strong>{{ plan.progression }}%</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Statut :</td>
+                        <td>
+                            <span style="background: #fff4e5; color: #FF7900; padding: 3px 10px; border-radius: 20px;">
+                                {{ plan.get_statut_display }}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{{ site_url }}{% url 'pa:detail_plan' plan.id %}" class="button">
+                    Voir le plan
+                </a>
+            </div>
+            
+            <p style="margin-top: 30px;">
+                <small>Si vous avez déjà terminé ce plan, merci de mettre à jour sa progression.</small>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>
+                Cet email a été envoyé automatiquement par Orange Gestion PA.<br>
+                Merci de ne pas répondre à cet email.
+            </p>
+            <p>&copy; {% now "Y" %} Orange Guinée - Gestion des Plans d'Action</p>
+        </div>
+    </div>
+</body>
+</html>

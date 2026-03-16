@@ -1,0 +1,645 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ plan.description|truncatechars:50 }} - Détail du Plan{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== VARIABLES ===== */
+    :root {
+        --border-color: #e9ecef;
+        --text-primary: #212529;
+        --text-secondary: #6c757d;
+        --bg-light: #f8f9fa;
+        --bg-hover: #f1f3f5;
+        --accent: #FF7900;
+        --accent-light: #fff4e5;
+        --success-light: #e8f5e9;
+        --success: #2e7d32;
+        --warning-light: #fff3e0;
+        --warning: #ed6c02;
+        --danger-light: #ffebee;
+        --danger: #c62828;
+        --info-light: #e3f2fd;
+        --info: #1976d2;
+    }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb-wrapper {
+        padding: 1rem 0;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .breadcrumb-custom {
+        display: flex;
+        flex-wrap: wrap;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        gap: 0.5rem;
+    }
+    
+    .breadcrumb-custom li {
+        display: flex;
+        align-items: center;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+    
+    .breadcrumb-custom li + li::before {
+        content: '/';
+        margin-right: 0.5rem;
+        color: var(--text-secondary);
+        opacity: 0.5;
+    }
+    
+    .breadcrumb-custom a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    
+    .breadcrumb-custom a:hover {
+        color: var(--accent);
+    }
+    
+    .breadcrumb-custom li:last-child {
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    /* ===== CARTE PRINCIPALE ===== */
+    .detail-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    /* En-tête */
+    .card-header {
+        background: var(--bg-light);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .header-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .header-title i {
+        font-size: 2rem;
+        color: var(--accent);
+    }
+    
+    .header-title h2 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    
+    .header-title small {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    /* Badge de statut */
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 1.2rem;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .status-badge.termine {
+        background: var(--success-light);
+        color: var(--success);
+    }
+    
+    .status-badge.en_cours {
+        background: var(--accent-light);
+        color: var(--accent);
+    }
+    
+    .status-badge.en_attente {
+        background: var(--info-light);
+        color: var(--info);
+    }
+    
+    .status-badge.annule {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+    /* Boutons d'action */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    
+    .btn-action i {
+        font-size: 1rem;
+    }
+    
+    .btn-edit {
+        background: white;
+        border-color: var(--border-color);
+        color: var(--text-secondary);
+    }
+    
+    .btn-edit:hover {
+        background: var(--bg-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    
+    .btn-cancel {
+        background: white;
+        border-color: var(--border-color);
+        color: var(--warning);
+    }
+    
+    .btn-cancel:hover {
+        background: var(--warning-light);
+        border-color: var(--warning);
+    }
+    
+    .btn-relaunch {
+        background: white;
+        border-color: var(--border-color);
+        color: var(--success);
+    }
+    
+    .btn-relaunch:hover {
+        background: var(--success-light);
+        border-color: var(--success);
+    }
+    
+    .btn-delete {
+        background: white;
+        border-color: var(--border-color);
+        color: var(--danger);
+    }
+    
+    .btn-delete:hover {
+        background: var(--danger-light);
+        border-color: var(--danger);
+    }
+
+    /* ===== CORPS DE LA CARTE ===== */
+    .card-body {
+        padding: 2rem;
+    }
+
+    /* Sections */
+    .section {
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .section-title i {
+        color: var(--accent);
+        font-size: 1.1rem;
+    }
+
+    /* Grille d'informations */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .info-item {
+        background: var(--bg-light);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    
+    .info-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-label i {
+        color: var(--accent);
+        width: 16px;
+    }
+    
+    .info-value {
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 1.1rem;
+    }
+
+    /* Direction badge */
+    .direction-badge {
+        display: inline-block;
+        padding: 0.3rem 1rem;
+        background: var(--bg-hover);
+        border-radius: 20px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    /* Progression */
+    .progress-container {
+        margin-top: 0.5rem;
+    }
+    
+    .progress-bar-bg {
+        height: 8px;
+        background: var(--border-color);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .progress-bar-fill {
+        height: 100%;
+        background: var(--accent);
+        border-radius: 4px;
+        transition: width 0.3s;
+    }
+    
+    .progress-value {
+        font-weight: 600;
+        color: var(--text-primary);
+        text-align: right;
+    }
+
+    /* Indicateurs de délai */
+    .delay-indicator {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-left: 0.5rem;
+    }
+    
+    .delay-indicator.danger {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+    
+    .delay-indicator.warning {
+        background: var(--warning-light);
+        color: var(--warning);
+    }
+    
+    .delay-indicator.success {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    /* Métadonnées */
+    .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    @media (max-width: 576px) {
+        .meta-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.8rem;
+        background: var(--bg-light);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+    }
+    
+    .meta-item i {
+        color: var(--accent);
+        width: 20px;
+    }
+    
+    .meta-content {
+        flex: 1;
+    }
+    
+    .meta-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.2rem;
+    }
+    
+    .meta-value {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    /* Pied de carte */
+    .card-footer {
+        background: var(--bg-light);
+        padding: 1rem 2rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1.5rem;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    
+    .btn-back:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateX(-3px);
+    }
+    
+    .plan-id {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .plan-id i {
+        color: var(--accent);
+        margin-right: 0.3rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .action-buttons {
+            width: 100%;
+        }
+        
+        .btn-action {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+
+<div class="container-fluid">
+    <!-- Carte principale -->
+    <div class="detail-card">
+        <!-- En-tête -->
+        <div class="card-header">
+            <div class="header-title">
+                <i class="fas fa-clipboard-list"></i>
+                <div>
+                    <h2>{{ plan.description|truncatechars:60 }}</h2>
+                    <small>Créé le {{ plan.date_creation|date:"d/m/Y" }}</small>
+                </div>
+            </div>
+            
+            <div class="header-status">
+                <span class="status-badge {{ plan.statut }}">
+                    <i class="fas 
+                        {% if plan.statut == 'termine' %}fa-check-circle
+                        {% elif plan.statut == 'en_cours' %}fa-sync-alt
+                        {% elif plan.statut == 'en_attente' %}fa-clock
+                        {% elif plan.statut == 'annule' %}fa-times-circle
+                        {% endif %} me-1">
+                    </i>
+                    {{ plan.get_statut_display }}
+                </span>
+            </div>
+            
+            <div class="action-buttons">
+                {% if plan.statut == 'annule' %}
+                    <a href="{% url 'pa:relancer_plan' plan.id %}" class="btn-action btn-relaunch">
+                        <i class="fas fa-play"></i>
+                        <span class="d-none d-sm-inline">Relancer</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'pa:annuler_plan' plan.id %}" class="btn-action btn-cancel">
+                        <i class="fas fa-ban"></i>
+                        <span class="d-none d-sm-inline">Annuler</span>
+                    </a>
+                {% endif %}
+                <a href="{% url 'pa:modifier_plan' plan.id %}" class="btn-action btn-edit">
+                    <i class="fas fa-edit"></i>
+                    <span class="d-none d-sm-inline">Modifier</span>
+                </a>
+                <a href="{% url 'pa:supprimer_plan' plan.id %}" class="btn-action btn-delete">
+                    <i class="fas fa-trash"></i>
+                    <span class="d-none d-sm-inline">Supprimer</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Corps -->
+        <div class="card-body">
+            <!-- Informations générales -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Informations générales
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-align-left"></i>
+                            Description
+                        </div>
+                        <div class="info-value">{{ plan.description }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-building"></i>
+                            Direction
+                        </div>
+                        <div class="info-value">
+                            <span class="direction-badge">{{ plan.direction }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-user-tie"></i>
+                            Porteur
+                        </div>
+                        <div class="info-value">{{ plan.porteur }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-chart-line"></i>
+                            Indicateur
+                        </div>
+                        <div class="info-value">{{ plan.indicateur }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dates et progression -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-calendar-alt"></i>
+                    Dates et progression
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-calendar-plus"></i>
+                            Date de début
+                        </div>
+                        <div class="info-value">{{ plan.date_debut|date:"d/m/Y" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-calendar-check"></i>
+                            Date de fin
+                        </div>
+                        <div class="info-value">{{ plan.date_fin|date:"d/m/Y" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-hourglass-end"></i>
+                            Échéance
+                        </div>
+                        <div class="info-value">
+                            <span>{{ plan.echeance|date:"d/m/Y" }}</span>
+                            {% if plan.jours_restants < 0 %}
+                                <span class="delay-indicator danger">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    Retard {{ plan.jours_restants|stringformat:"+d"|slice:"1:" }}j
+                                </span>
+                            {% elif plan.jours_restants == 0 %}
+                                <span class="delay-indicator warning">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Dernier jour
+                                </span>
+                            {% elif plan.jours_restants <= 7 %}
+                                <span class="delay-indicator warning">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ plan.jours_restants }}j
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-percent"></i>
+                            Progression
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: {{ plan.progression }}%;"></div>
+                            </div>
+                            <div class="progress-value">{{ plan.progression }}%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Métadonnées -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-history"></i>
+                    Métadonnées
+                </div>
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <i class="fas fa-plus-circle"></i>
+                        <div class="meta-content">
+                            <div class="meta-label">Date de création</div>
+                            <div class="meta-value">{{ plan.date_creation|date:"d/m/Y H:i" }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <i class="fas fa-pen"></i>
+                        <div class="meta-content">
+                            <div class="meta-label">Dernière modification</div>
+                            <div class="meta-value">{{ plan.date_modification|date:"d/m/Y H:i" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pied -->
+        <div class="card-footer">
+            <a href="{% url 'pa:liste_plans' %}" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Retour à la liste
+            </a>
+            <div class="plan-id">
+                <i class="fas fa-hashtag"></i>
+                Plan #{{ plan.id }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
